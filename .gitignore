@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Data (large TIFs — tracked separately or via LFS)
+data/*/originals/
+data/*/edited/
+
+# Generated outputs (PPTX etc)
+output/
+
+# gallery/ is NOT ignored — it deploys via GitHub Pages
+
+# macOS
+.DS_Store
+
+# Local state
+.current_project
+
+# Temp
+*.tmp
+~$*

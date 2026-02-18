@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCRMP Orthomosaics</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0a0a0a;
+    color: #ccc;
+    overflow-x: hidden;
+  }
+
+  /* ========== HERO WALL ========== */
+  .hero {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .hero-mosaic {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    width: 100%;
+  }
+
+  .hero-tile {
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hero-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.55) saturate(1.1);
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      180deg,
+      rgba(10,10,10,0.3) 0%,
+      rgba(10,10,10,0.1) 40%,
+      rgba(10,10,10,0.1) 60%,
+      rgba(10,10,10,0.6) 100%
+    );
+    pointer-events: none;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.08em;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.7);
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.65);
+    margin-top: 0.4rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* ========== STICKY NAV ========== */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: rgba(10,10,10,0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0.55rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  .topnav .brand {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.5);
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .topnav .ds-pills {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .ds-pill {
+    color: #7ab8ff;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.2rem 0.65rem;
+    border-radius: 3px;
+    transition: all 0.12s;
+  }
+
+  .ds-pill:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* ========== DATASET SECTION ========== */
+  .dataset {
+    margin-bottom: 0.5rem;
+  }
+
+  .ds-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem 1.5rem 0.5rem;
+  }
+
+  .ds-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .ds-sites {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .ds-sites a {
+    color: rgba(255,255,255,0.45);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.12rem 0.45rem;
+    border-radius: 2px;
+    transition: all 0.12s;
+    letter-spacing: 0.03em;
+  }
+
+  .ds-sites a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* ========== SITE BLOCKS ========== */
+  .site-block {
+    margin-bottom: 2px;
+  }
+
+  .site-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.8rem 1.5rem 0.3rem;
+  }
+
+  /* ========== IMAGE WALL — vertical stack, full aspect ratio ========== */
+  .wall-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .wall-tile {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    line-height: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .wall-tile:last-child {
+    border-bottom: none;
+  }
+
+  .wall-tile img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: filter 0.25s;
+  }
+
+  .wall-tile:hover img {
+    filter: brightness(1.15);
+  }
+
+  .wall-tile .label {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(0,0,0,0.5);
+    border-radius: 2px;
+    pointer-events: none;
+    letter-spacing: 0.05em;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+
+  .wall-tile:hover .label {
+    opacity: 1;
+  }
+
+  /* ========== LIGHTBOX ========== */
+  .viewer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.96);
+    z-index: 1000;
+    flex-direction: column;
+  }
+
+  .viewer-overlay.active {
+    display: flex;
+  }
+
+  .viewer-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    flex-shrink: 0;
+  }
+
+  .viewer-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .viewer-controls {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .viewer-controls button {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .viewer-controls button:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  .viewer-canvas {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    cursor: grab;
+  }
+
+  .viewer-canvas.dragging {
+    cursor: grabbing;
+  }
+
+  .viewer-canvas img {
+    position: absolute;
+    transform-origin: 0 0;
+    max-width: none;
+    max-height: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .zoom-hint {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.3);
+    font-size: 0.75rem;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  /* ========== FOOTER ========== */
+  footer {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: rgba(255,255,255,0.15);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero wall -->
+<div class="hero">
+  <div class="hero-mosaic">
+      <div class="hero-tile" style="flex: 9.9138 1 0%;"><img src="images/2025_annual_BIT_T1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.5508 1 0%;"><img src="images/2025_annual_BIT_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.2495 1 0%;"><img src="images/2025_annual_BIT_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.7642 1 0%;"><img src="images/2025_annual_BPT_T1_1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.6611 1 0%;"><img src="images/2025_annual_BPT_T1_2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.8611 1 0%;"><img src="images/2025_annual_BPT_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.1509 1 0%;"><img src="images/2025_annual_BPT_T5.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.1419 1 0%;"><img src="images/2025_annual_BTY_T1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.3337 1 0%;"><img src="images/2025_annual_BTY_T2_2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.1964 1 0%;"><img src="images/2025_annual_BTY_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.5094 1 0%;"><img src="images/2025_annual_BWR_T1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.4843 1 0%;"><img src="images/2025_annual_BWR_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.5268 1 0%;"><img src="images/2025_annual_BWR_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.5493 1 0%;"><img src="images/2025_annual_CKR_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.5089 1 0%;"><img src="images/2025_annual_CKR_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.8587 1 0%;"><img src="images/2025_annual_CKR_T4.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 11.0643 1 0%;"><img src="images/2025_annual_FLC_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.06 1 0%;"><img src="images/2025_annual_FLC_T5.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.5835 1 0%;"><img src="images/2025_annual_FLC_T6.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 11.1119 1 0%;"><img src="images/2025_annual_FSB_T1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 9.5591 1 0%;"><img src="images/2025_annual_FSB_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 10.6659 1 0%;"><img src="images/2025_annual_FSB_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.4811 1 0%;"><img src="images/2025_annual_MGN_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 6.959 1 0%;"><img src="images/2025_annual_MGN_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.9212 1 0%;"><img src="images/2025_annual_MGN_T4.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 7.8328 1 0%;"><img src="images/2025_annual_SCP_T1_1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 7.9378 1 0%;"><img src="images/2025_annual_SCP_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.5977 1 0%;"><img src="images/2025_annual_SCP_T3.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.6857 1 0%;"><img src="images/2025_annual_SHR_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 7.7425 1 0%;"><img src="images/2025_annual_SHR_T4.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.2219 1 0%;"><img src="images/2025_annual_SHR_T5.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 8.8436 1 0%;"><img src="images/2025_annual_SVN_T1.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 9.0112 1 0%;"><img src="images/2025_annual_SVN_T2.webp" alt="" loading="eager"></div>
+      <div class="hero-tile" style="flex: 6.7247 1 0%;"><img src="images/2025_annual_SVN_T3.webp" alt="" loading="eager"></div>
+  </div>
+  <div class="hero-overlay">
+    <div class="hero-title">TCRMP</div>
+    <div class="hero-sub">Territorial Coral Reef Monitoring Program &mdash; Orthomosaics</div>
+  </div>
+</div>
+
+<!-- Sticky nav -->
+<div class="topnav">
+  <span class="brand">TCRMP Ortho</span>
+  <div class="ds-pills">
+      <a href="#ds-2025_annual" class="ds-pill">2025 Annual</a>
+  </div>
+</div>
+
+<!-- Dataset sections -->
+
+    <section class="dataset" id="ds-2025_annual">
+      <div class="ds-bar">
+        <span class="ds-title">2025 Annual</span>
+        <div class="ds-sites">
+        <a href="#s-2025_annual-BIT">BIT</a>
+        <a href="#s-2025_annual-BPT">BPT</a>
+        <a href="#s-2025_annual-BTY">BTY</a>
+        <a href="#s-2025_annual-BWR">BWR</a>
+        <a href="#s-2025_annual-CKR">CKR</a>
+        <a href="#s-2025_annual-FLC">FLC</a>
+        <a href="#s-2025_annual-FSB">FSB</a>
+        <a href="#s-2025_annual-MGN">MGN</a>
+        <a href="#s-2025_annual-SCP">SCP</a>
+        <a href="#s-2025_annual-SHR">SHR</a>
+        <a href="#s-2025_annual-SVN">SVN</a>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-BIT">
+        <div class="site-name">BIT</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BIT_T1.webp', 'BIT T1 — 2025 Annual')">
+            <img src="images/2025_annual_BIT_T1.webp" alt="BIT T1 — 2025 Annual" loading="lazy">
+            <span class="label">T1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BIT_T2.webp', 'BIT T2 — 2025 Annual')">
+            <img src="images/2025_annual_BIT_T2.webp" alt="BIT T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BIT_T3.webp', 'BIT T3 — 2025 Annual')">
+            <img src="images/2025_annual_BIT_T3.webp" alt="BIT T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-BPT">
+        <div class="site-name">BPT</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BPT_T1_1.webp', 'BPT T1_1 — 2025 Annual')">
+            <img src="images/2025_annual_BPT_T1_1.webp" alt="BPT T1_1 — 2025 Annual" loading="lazy">
+            <span class="label">T1_1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BPT_T1_2.webp', 'BPT T1_2 — 2025 Annual')">
+            <img src="images/2025_annual_BPT_T1_2.webp" alt="BPT T1_2 — 2025 Annual" loading="lazy">
+            <span class="label">T1_2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BPT_T2.webp', 'BPT T2 — 2025 Annual')">
+            <img src="images/2025_annual_BPT_T2.webp" alt="BPT T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BPT_T5.webp', 'BPT T5 — 2025 Annual')">
+            <img src="images/2025_annual_BPT_T5.webp" alt="BPT T5 — 2025 Annual" loading="lazy">
+            <span class="label">T5</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-BTY">
+        <div class="site-name">BTY</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BTY_T1.webp', 'BTY T1 — 2025 Annual')">
+            <img src="images/2025_annual_BTY_T1.webp" alt="BTY T1 — 2025 Annual" loading="lazy">
+            <span class="label">T1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BTY_T2_2.webp', 'BTY T2_2 — 2025 Annual')">
+            <img src="images/2025_annual_BTY_T2_2.webp" alt="BTY T2_2 — 2025 Annual" loading="lazy">
+            <span class="label">T2_2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BTY_T3.webp', 'BTY T3 — 2025 Annual')">
+            <img src="images/2025_annual_BTY_T3.webp" alt="BTY T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-BWR">
+        <div class="site-name">BWR</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BWR_T1.webp', 'BWR T1 — 2025 Annual')">
+            <img src="images/2025_annual_BWR_T1.webp" alt="BWR T1 — 2025 Annual" loading="lazy">
+            <span class="label">T1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BWR_T2.webp', 'BWR T2 — 2025 Annual')">
+            <img src="images/2025_annual_BWR_T2.webp" alt="BWR T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_BWR_T3.webp', 'BWR T3 — 2025 Annual')">
+            <img src="images/2025_annual_BWR_T3.webp" alt="BWR T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-CKR">
+        <div class="site-name">CKR</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_CKR_T2.webp', 'CKR T2 — 2025 Annual')">
+            <img src="images/2025_annual_CKR_T2.webp" alt="CKR T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_CKR_T3.webp', 'CKR T3 — 2025 Annual')">
+            <img src="images/2025_annual_CKR_T3.webp" alt="CKR T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_CKR_T4.webp', 'CKR T4 — 2025 Annual')">
+            <img src="images/2025_annual_CKR_T4.webp" alt="CKR T4 — 2025 Annual" loading="lazy">
+            <span class="label">T4</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-FLC">
+        <div class="site-name">FLC</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_FLC_T3.webp', 'FLC T3 — 2025 Annual')">
+            <img src="images/2025_annual_FLC_T3.webp" alt="FLC T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_FLC_T5.webp', 'FLC T5 — 2025 Annual')">
+            <img src="images/2025_annual_FLC_T5.webp" alt="FLC T5 — 2025 Annual" loading="lazy">
+            <span class="label">T5</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_FLC_T6.webp', 'FLC T6 — 2025 Annual')">
+            <img src="images/2025_annual_FLC_T6.webp" alt="FLC T6 — 2025 Annual" loading="lazy">
+            <span class="label">T6</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-FSB">
+        <div class="site-name">FSB</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_FSB_T1.webp', 'FSB T1 — 2025 Annual')">
+            <img src="images/2025_annual_FSB_T1.webp" alt="FSB T1 — 2025 Annual" loading="lazy">
+            <span class="label">T1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_FSB_T2.webp', 'FSB T2 — 2025 Annual')">
+            <img src="images/2025_annual_FSB_T2.webp" alt="FSB T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_FSB_T3.webp', 'FSB T3 — 2025 Annual')">
+            <img src="images/2025_annual_FSB_T3.webp" alt="FSB T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-MGN">
+        <div class="site-name">MGN</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_MGN_T2.webp', 'MGN T2 — 2025 Annual')">
+            <img src="images/2025_annual_MGN_T2.webp" alt="MGN T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_MGN_T3.webp', 'MGN T3 — 2025 Annual')">
+            <img src="images/2025_annual_MGN_T3.webp" alt="MGN T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_MGN_T4.webp', 'MGN T4 — 2025 Annual')">
+            <img src="images/2025_annual_MGN_T4.webp" alt="MGN T4 — 2025 Annual" loading="lazy">
+            <span class="label">T4</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-SCP">
+        <div class="site-name">SCP</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SCP_T1_1.webp', 'SCP T1_1 — 2025 Annual')">
+            <img src="images/2025_annual_SCP_T1_1.webp" alt="SCP T1_1 — 2025 Annual" loading="lazy">
+            <span class="label">T1_1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SCP_T2.webp', 'SCP T2 — 2025 Annual')">
+            <img src="images/2025_annual_SCP_T2.webp" alt="SCP T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SCP_T3.webp', 'SCP T3 — 2025 Annual')">
+            <img src="images/2025_annual_SCP_T3.webp" alt="SCP T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-SHR">
+        <div class="site-name">SHR</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SHR_T2.webp', 'SHR T2 — 2025 Annual')">
+            <img src="images/2025_annual_SHR_T2.webp" alt="SHR T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SHR_T4.webp', 'SHR T4 — 2025 Annual')">
+            <img src="images/2025_annual_SHR_T4.webp" alt="SHR T4 — 2025 Annual" loading="lazy">
+            <span class="label">T4</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SHR_T5.webp', 'SHR T5 — 2025 Annual')">
+            <img src="images/2025_annual_SHR_T5.webp" alt="SHR T5 — 2025 Annual" loading="lazy">
+            <span class="label">T5</span>
+          </div>
+        </div>
+      </div>
+      <div class="site-block" id="s-2025_annual-SVN">
+        <div class="site-name">SVN</div>
+        <div class="wall-stack">
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SVN_T1.webp', 'SVN T1 — 2025 Annual')">
+            <img src="images/2025_annual_SVN_T1.webp" alt="SVN T1 — 2025 Annual" loading="lazy">
+            <span class="label">T1</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SVN_T2.webp', 'SVN T2 — 2025 Annual')">
+            <img src="images/2025_annual_SVN_T2.webp" alt="SVN T2 — 2025 Annual" loading="lazy">
+            <span class="label">T2</span>
+          </div>
+          <div class="wall-tile" onclick="openViewer('images/2025_annual_SVN_T3.webp', 'SVN T3 — 2025 Annual')">
+            <img src="images/2025_annual_SVN_T3.webp" alt="SVN T3 — 2025 Annual" loading="lazy">
+            <span class="label">T3</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+<footer>TCRMP Orthomosaic Gallery</footer>
+
+<!-- Lightbox -->
+<div class="viewer-overlay" id="viewer">
+  <div class="viewer-topbar">
+    <span class="viewer-title" id="viewerTitle"></span>
+    <div class="viewer-controls">
+      <button onclick="zoomBy(1.4)" title="Zoom in">+</button>
+      <button onclick="zoomBy(0.7)" title="Zoom out">&minus;</button>
+      <button onclick="resetView()" title="Fit to screen">&#8634;</button>
+      <button onclick="closeViewer()" title="Close">&times;</button>
+    </div>
+  </div>
+  <div class="viewer-canvas" id="viewerCanvas">
+    <img id="viewerImg" draggable="false">
+    <div class="zoom-hint" id="zoomHint">scroll to zoom &middot; drag to pan &middot; double-click to toggle &middot; esc to close</div>
+  </div>
+</div>
+
+<script>
+const viewer = document.getElementById('viewer');
+const viewerImg = document.getElementById('viewerImg');
+const viewerCanvas = document.getElementById('viewerCanvas');
+const viewerTitle = document.getElementById('viewerTitle');
+const zoomHint = document.getElementById('zoomHint');
+
+let scale = 1, tx = 0, ty = 0;
+let isDragging = false, dragStartX, dragStartY, dragTxStart, dragTyStart;
+let hintTimeout;
+
+function openViewer(src, title) {
+  viewerTitle.textContent = title;
+  viewerImg.src = src;
+  viewer.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  zoomHint.style.opacity = '1';
+  clearTimeout(hintTimeout);
+  hintTimeout = setTimeout(() => zoomHint.style.opacity = '0', 3500);
+  viewerImg.onload = () => resetView();
+}
+
+function closeViewer() {
+  viewer.classList.remove('active');
+  document.body.style.overflow = '';
+  viewerImg.src = '';
+}
+
+function resetView() {
+  const cw = viewerCanvas.clientWidth;
+  const ch = viewerCanvas.clientHeight;
+  const iw = viewerImg.naturalWidth;
+  const ih = viewerImg.naturalHeight;
+  scale = Math.min(cw / iw, ch / ih, 1);
+  tx = (cw - iw * scale) / 2;
+  ty = (ch - ih * scale) / 2;
+  applyTransform();
+}
+
+function zoomBy(factor, cx, cy) {
+  if (cx === undefined) {
+    cx = viewerCanvas.clientWidth / 2;
+    cy = viewerCanvas.clientHeight / 2;
+  }
+  const newScale = Math.max(0.02, Math.min(scale * factor, 50));
+  const ratio = newScale / scale;
+  tx = cx - ratio * (cx - tx);
+  ty = cy - ratio * (cy - ty);
+  scale = newScale;
+  applyTransform();
+}
+
+function applyTransform() {
+  viewerImg.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+}
+
+viewerCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = viewerCanvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+  zoomBy(e.deltaY < 0 ? 1.15 : 0.87, cx, cy);
+}, { passive: false });
+
+viewerCanvas.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  dragTxStart = tx;
+  dragTyStart = ty;
+  viewerCanvas.classList.add('dragging');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  tx = dragTxStart + (e.clientX - dragStartX);
+  ty = dragTyStart + (e.clientY - dragStartY);
+  applyTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+  viewerCanvas.classList.remove('dragging');
+});
+
+viewerCanvas.addEventListener('dblclick', (e) => {
+  const rect = viewerCanvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+  const fitScale = Math.min(
+    viewerCanvas.clientWidth / viewerImg.naturalWidth,
+    viewerCanvas.clientHeight / viewerImg.naturalHeight, 1
+  );
+  if (scale > fitScale * 1.5) {
+    resetView();
+  } else {
+    zoomBy(3, cx, cy);
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (!viewer.classList.contains('active')) return;
+  if (e.key === 'Escape') closeViewer();
+  if (e.key === '+' || e.key === '=') zoomBy(1.4);
+  if (e.key === '-') zoomBy(0.7);
+  if (e.key === '0') resetView();
+});
+
+viewer.addEventListener('click', (e) => {
+  if (e.target === viewer) closeViewer();
+});
+</script>
+
+</body>
+</html>
