@@ -8,7 +8,7 @@ converts to lossless WebP, and builds a self-contained HTML gallery.
 Each dataset entry in datasets.json maps to a project directory:
     {"id": "2025_annual", "label": "2025 Annual"}
     → reads TIFs from data/2025_annual/edited/
-    → writes WebPs as gallery/images/2025_annual_{SITE}_{TRANSECT}.webp
+    → writes WebPs as docs/images/2025_annual_{SITE}_{TRANSECT}.webp
 
 Layout:
   - Full-bleed hero mosaic wall with floating title
@@ -91,8 +91,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate TCRMP orthomosaic HTML gallery.")
     parser.add_argument("--data-dir", default="data",
                         help="Base data directory (default: data)")
-    parser.add_argument("--output-dir", default="gallery",
-                        help="Output directory for HTML gallery (default: gallery)")
+    parser.add_argument("--output-dir", default="docs",
+                        help="Output directory for HTML gallery (default: docs)")
     parser.add_argument("--datasets", default="datasets.json",
                         help="Path to datasets.json config (default: datasets.json)")
     args = parser.parse_args()

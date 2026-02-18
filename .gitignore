@@ -10,7 +10,7 @@ data/*/edited/
 # Generated outputs (PPTX etc)
 output/
 
-# gallery/ is NOT ignored — it deploys via GitHub Pages
+# docs/ is NOT ignored — it deploys via GitHub Pages
 
 # macOS
 .DS_Store

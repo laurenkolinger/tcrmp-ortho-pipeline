@@ -25,7 +25,7 @@ data/
   2025_annual/           ← this is your PROJECT_DIR
     originals/           ← raw TIFs from NAS
     edited/              ← your Lightroom exports go here
-gallery/
+docs/
   index.html
   images/                ← generated WebPs
 output/                  ← generated PPTXs
@@ -78,7 +78,7 @@ python3 src/generate_ortho_gallery.py
 python3 src/create_ortho_pptx.py
 ```
 
-Gallery goes to `gallery/`. PPTX goes to `output/TCRMP_2025_annual.pptx`.
+Gallery goes to `docs/`. PPTX goes to `output/TCRMP_2025_annual.pptx`.
 
 Both scripts read `.current_project` automatically — no arguments needed.
 
@@ -113,5 +113,5 @@ Edit, export into `data/2024_annual/edited/`, add to `datasets.json`, regenerate
 ### One-time setup
 
 1. Push repo to GitHub
-2. `git lfs install && git lfs track "gallery/images/*.webp" && git add .gitattributes`
+2. `git lfs install && git lfs track "docs/images/*.webp" && git add .gitattributes`
 3. Settings > Pages > Deploy from branch `main`, folder `/gallery`
