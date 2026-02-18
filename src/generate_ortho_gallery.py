@@ -50,10 +50,11 @@ def discover_files(src_dir):
     return site_files
 
 
-def convert_tif_to_webp(tif_path, webp_path):
-    """Convert TIF to lossless WebP — ~25-30% smaller than PNG, zero quality loss.
+def convert_tif_to_webp(tif_path, webp_path, quality=85):
+    """Convert TIF to lossy WebP via sips (TIF→PNG) then cwebp (PNG→WebP).
 
-    cwebp cannot read TIFs directly, so we convert via sips to a temporary PNG first.
+    Quality 85 is visually indistinguishable from lossless on screen and
+    typically 90%+ smaller.
     """
     import tempfile
     with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
@@ -64,7 +65,7 @@ def convert_tif_to_webp(tif_path, webp_path):
             capture_output=True, check=True
         )
         subprocess.run(
-            ["cwebp", "-lossless", "-quiet", tmp_png, "-o", webp_path],
+            ["cwebp", "-q", str(quality), "-quiet", tmp_png, "-o", webp_path],
             capture_output=True, check=True
         )
     finally:
